@@ -7,10 +7,12 @@ use Osynapsy\AI\OpenAI\Model\ModelInterface;
 use Osynapsy\AI\OpenAI\Prompt\Prompt;
 use Osynapsy\AI\OpenAI\Prompt\PromptInterface;
 
-class Client
+class ChatGpt
 {
     protected $version;
     protected $model;
+    protected $Prompt;
+    protected $dataset;
     protected $key;
     protected $cache = False;
 
@@ -25,9 +27,39 @@ class Client
         return $this->model;
     }
 
-    public function send(PromptInterface $prompt, $maxTokens = 1024)
+    public function promptFactory() : promptInterface
     {
-        $body = $this->getModel()->buildRequest($prompt, $maxTokens);
+        return new Prompt;
+    }
+
+    protected function setVersion(string $ver)
+    {
+        $this->version = $ver;
+        return $this;
+    }
+
+    public function enableCache()
+    {
+        $this->cache = False;
+        return $this;
+    }
+
+    public function prompt(string $message, string $role = 'user')
+    {
+        if (empty($this->Prompt)) {
+            $this->Prompt = new Prompt;
+        }
+        $this->Prompt->add($role, $message);
+        return $this;
+    }
+
+    public function getRespose($maxTokens = 1024)
+    {
+        $body = $this->getModel()->buildRequest($this->prompt, $maxTokens);
+        if (!empty($this->dataset)) {
+            $body .= PHP_EOL. '----DATASET-----'.PHP_EOL;
+            $body .= json_encode($this->dataset);
+        }
         $Request = $this->restClientRequestFactory($this->getModel()->getEndpoint(), $body, $this->key);
         $Response = $this->restClientFactory($Request);
         return $this->getModel()->getResponse($Response->getBody());
@@ -45,18 +77,9 @@ class Client
         return (new JsonClient(false))->execute($Request);
     }
 
-    public function promptFactory() : promptInterface
+    protected function setDataset($dataset)
     {
-        return new Prompt;
-    }
-
-    protected function setVersion(string $ver) : void
-    {
-        $this->version = $ver;
-    }
-
-    public function enableCache()
-    {
-        $this->cache = False;
+        $this->dataset = $dataset;
+        return $this;
     }
 }
