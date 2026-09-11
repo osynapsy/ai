@@ -1,7 +1,7 @@
 {
-    "name": "osynapsy.net/osynapsy-ai",
-    "version": "1.0",
-    "homepage": "http://www.osynapsy.org/",
+    "name": "osynapsy/ai",
+    "version": "0.1.0",
+    "homepage": "https://osynapsy.net/",
     "type": "library",
     "description": "Library for interface php with main AI service",
     "keywords": ["Library","AI"],
@@ -10,7 +10,7 @@
         {
             "name": "Pietro Celeste",
             "email": "p.celeste@osynapsy.net",
-            "homepage": "https://github.com/osynapsy/osy-ai/wiki"
+            "homepage": "https://github.com/osynapsy/ai/wiki"
         }
     ],
     "require": {
