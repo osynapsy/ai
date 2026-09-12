@@ -4,7 +4,7 @@ namespace Osynapsy\AI\Prompt;
 /**
  * Description of PromptSection
  *
- * @author peter
+ * @author Pietro Celeste <p.celeste@osynapsy.net>
  */
 class PromptSection
 {

@@ -1,5 +1,5 @@
 <?php
-namespace Osynapsy\AI\OpenAI\Prompt;
+namespace Osynapsy\AI\Prompt;
 
 /**
  * Description of PromptRule

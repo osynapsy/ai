@@ -4,7 +4,7 @@ namespace Osynapsy\AI\Prompt;
 /**
  * Description of AbstractPromptIt
  *
- * @author peter
+ * @author Pietro Celeste <p.celeste@osynapsy.net>
  */
 abstract class AbstractPromptIt extends AbstractPrompt
 {

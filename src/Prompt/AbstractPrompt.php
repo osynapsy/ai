@@ -1,6 +1,11 @@
 <?php
 namespace Osynapsy\AI\Prompt;
 
+/**
+ * Description of AbstractPrompt
+ *
+ * @author Pietro Celeste <p.celeste@osynapsy.net>
+ */
 abstract class AbstractPrompt
 {
     /** @var array<string,PromptSection> */
