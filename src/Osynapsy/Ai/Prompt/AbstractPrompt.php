@@ -117,10 +117,13 @@ abstract class AbstractPrompt implements PromptInterface
     public function __call(string $name, array $arguments): static
     {
        if (substr($name, 0, 3) === 'add' && strlen($name) >= 3) {
+            if (empty($arguments)) {
+                throw new \InvalidArgumentException("Il metodo $name() richiede almeno il contenuto della sezione.");
+            }
            $section = substr($name, 3) ?: 'default';
            $this->addSection(new PromptSection(strtolower($section), $arguments[0], $arguments[1] ?? null));
            return $this;
        }
-       throw new \Exception(sprintf('no method $s exists', $name));
+       throw new \BadMethodCallException("No methos {$name}() exists in " . static::class);
     }
 }
