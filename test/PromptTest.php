@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Osynapsy\AI\Prompt\AbstractPrompt;
-use Osynapsy\AI\Prompt\PromptSection;
+use Osynapsy\Ai\Prompt\AbstractPrompt;
+use Osynapsy\Ai\Prompt\PromptSection;
 
 class PromptTest extends TestCase
 {
@@ -40,7 +40,7 @@ class PromptTest extends TestCase
         $section = $prompt->getContext();
 
         $this->assertInstanceOf(PromptSection::class, $section);
-        $this->assertSame("CONTEXT:\n$context", strval($section));
+        $this->assertSame("### SYSTEM\n$context", strval($section));
     }
 
     /**
@@ -51,7 +51,7 @@ class PromptTest extends TestCase
         $prompt  = $this->promptFactory();
         $dataset = ['key' => 'value', 'another_key' => 123];
 
-        $prompt->setDataset($dataset);        
+        $prompt->setDataset($dataset);
 
         //$this->assertInstanceOf(PromptSection::class, $section);
         $this->assertSame($dataset, $prompt->getDataset());
@@ -64,12 +64,12 @@ class PromptTest extends TestCase
     {
         $prompt = $this->promptFactory();
         $prompt->addContext('Hello World!');
-        $prompt->addSection((new PromptSection('other', 'OTHER'))->add('other'));
-        $prompt->setDataset(['key' => 'value']);
-        $strPrompt = strval($prompt);
+        $prompt->addSection(new PromptSection('other', 'other', 'OTHER'));
+        $prompt->setDataset(['key' => 'value']);        
+        $strPrompt = strval($prompt);        
         $this->assertIsString($strPrompt);
-        $this->assertStringContainsString('"key": "value"', $strPrompt);
-        $this->assertStringContainsString('CONTEXT', $strPrompt);
+        $this->assertStringContainsString('\"key\": \"value\"', $strPrompt);
+        $this->assertStringContainsString('system', $strPrompt);
         $this->assertStringContainsString('OTHER', $strPrompt);
     }
 
