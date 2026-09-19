@@ -1,9 +1,9 @@
 {
     "name": "osynapsy/ai",
-    "version": "0.1.0",
+    "version": "0.1",
     "homepage": "https://osynapsy.net/",
     "type": "library",
-    "description": "Library for interface php with main AI service",
+    "description": "Library for interface php with main AI provider",
     "keywords": ["Library","AI"],
     "license": "MIT",
     "authors": [
@@ -19,7 +19,7 @@
     },
     "autoload" : {
         "psr-4": {
-            "Osynapsy\\AI\\": "src/"
+            "Osynapsy\\Ai\\": "src/Osynapsy/Ai/"
         }
     }
 }
