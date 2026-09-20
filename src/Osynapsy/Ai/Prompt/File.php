@@ -21,7 +21,7 @@ class File implements PromptInterface
         $fileName = $_SERVER['DOCUMENT_ROOT'] . $rawfileName;
         // Controlla che il file di input esista
         if (!file_exists($fileName)) {
-            throw new \Exception(sprintf('Il file %s non esiste', $fileName));
+            throw new \Exception(sprintf('The file %s do not exists', $fileName));
         }
         // Imposta il path del file di output: stessa cartella, stesso nome ma con estensione .wav
         $outputPath = preg_replace('/\.(ogg|opus)$/i', '.wav', $fileName);
