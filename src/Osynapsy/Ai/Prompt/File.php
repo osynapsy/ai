@@ -16,7 +16,7 @@ class File implements PromptInterface
         return ['file' => $this->file];
     }
     
-    protected function convertAudioToWav($rawfileName)
+    public function convertAudioToWav($rawfileName)
     {
         $fileName = $_SERVER['DOCUMENT_ROOT'] . $rawfileName;
         // Controlla che il file di input esista
