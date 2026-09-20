@@ -67,7 +67,7 @@ abstract class AbstractPrompt implements PromptInterface
     /**
      * Il Prompt si adatta al formato richiesto dal Formatter
      */
-    public function format(PromptFormatterInterface $formatter): mixed
+    public function format(?PromptFormatterInterface $formatter = new ChatFormatter): mixed
     {
         return $formatter->format($this);
     }
@@ -111,7 +111,7 @@ abstract class AbstractPrompt implements PromptInterface
 
     public function __toString(): string
     {
-        return json_encode($this->format(new Formatter\ChatFormatter), JSON_PRETTY_PRINT);
+        return json_encode($this->format(new ChatFormatter), JSON_PRETTY_PRINT);
     }
     
     public function __call(string $name, array $arguments): static

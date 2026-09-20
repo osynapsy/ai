@@ -1,6 +1,7 @@
 <?php
 namespace Osynapsy\Ai\Prompt;
 
+
 class File implements PromptInterface
 {
     protected $file;
@@ -10,13 +11,8 @@ class File implements PromptInterface
         $this->file = new \CURLFile($filename);
     }
 
-    public function get() : array
+    public function format(?Formatter\PromptFormatterInterface $formatter = null) : mixed
     {
         return ['file' => $this->file];
-    }
-
-    public function getJson() : string
-    {
-        return json_decode($this->get());
     }
 }

@@ -5,5 +5,5 @@ use Osynapsy\Ai\Prompt\Formatter\PromptFormatterInterface;
 
 interface PromptInterface
 {    
-    public function format(PromptFormatterInterface $formatter) : mixed;
+    public function format(?PromptFormatterInterface $formatter = null) : mixed;
 }
