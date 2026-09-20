@@ -1,6 +1,6 @@
 {
     "name": "osynapsy/ai",
-    "version": "0.1",
+    "version": "0.1.0",
     "homepage": "https://osynapsy.net/",
     "type": "library",
     "description": "Library for interface php with main AI provider",
