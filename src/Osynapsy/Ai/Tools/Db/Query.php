@@ -5,7 +5,7 @@ use Osynapsy\Ai\Tools\ToolInterface;
 
 class Query implements ToolInterface
 {
-    public function execute(array $arguments, $databaseService): mixed
+    public function execute(array $arguments, $databaseService = null): mixed
     {
         $sql = trim($arguments['sql'] ?? '');
 
@@ -20,10 +20,19 @@ class Query implements ToolInterface
             ];
         }
 
-        if (method_exists($databaseService, 'executeSafeSelect')) {
-            return $databaseService->findAssoc($sql , $arguments);
+        if (!method_exists($databaseService, 'findAssoc')) {
+            return ['error' => "Metodo executeSafeSelect non disponibile nel servizio database."];
         }
 
-        return ['error' => "Metodo executeSafeSelect non disponibile nel servizio database."];
+        try {
+            // ... logica di esecuzione del tool ...
+            return $databaseService->findAssoc($sql);
+        } catch (\Throwable $e) {
+            // RESTITUIAMO L'ERRORE ALL'LLM INVECE DI INTERROMPERE L'APPLICAZIONE
+            return [
+                'error' => true,
+                'message' => $e->getMessage()
+            ];
+        }
     }
 }

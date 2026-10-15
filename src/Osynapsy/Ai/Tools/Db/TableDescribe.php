@@ -26,7 +26,7 @@ class TableDescribe implements ToolInterface
     {
         return match($dbType) {
             'mysql' => 'DESC %s',
-            'oracle' => 'SELECT table_name FROM user_tables ORDER BY table_name ',
+            'oracle' => "SELECT column_name, data_type, data_length, nullable FROM user_tab_columns WHERE table_name = '%s'",
             'postgres' => "SELECT table_name FROM information_schema.tables  WHERE table_schema = 'public' AND table_type = 'BASE TABLE'",
             'sqlite' => "SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
             default => false
