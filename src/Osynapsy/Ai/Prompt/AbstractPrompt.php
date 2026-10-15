@@ -4,6 +4,7 @@ namespace Osynapsy\Ai\Prompt;
 use Osynapsy\Ai\Prompt\Formatter\PromptFormatterInterface;
 use Osynapsy\Ai\Prompt\Formatter\ChatFormatter;
 use Osynapsy\Ai\Prompt\Section\Dataset;
+use Osynapsy\Ai\Tools\ToolContext;
 
 /**
  * Description of AbstractPrompt
@@ -23,6 +24,13 @@ abstract class AbstractPrompt implements PromptInterface
             $this->addSection(new PromptSection('context', null, 'SYSTEM'));
         }
         $this->getContext()->add($context);
+        return $this;
+    }
+
+    public function addTools(): static
+    {
+        // Riutilizza il tuo metodo addContext esistente per metterlo nel ruolo 'system'
+        $this->addContext(ToolContext::get());
         return $this;
     }
 
