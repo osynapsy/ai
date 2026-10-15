@@ -72,6 +72,11 @@ abstract class AbstractPrompt implements PromptInterface
         return $formatter->format($this);
     }
 
+    public function addMessage($role, $message)
+    {
+        $this->messages[] = [$role, $message];
+    }
+
     public function addImage(string $filePathOrBase64): static
     {
         $this->images[] = new PromptImage($filePathOrBase64);
@@ -102,6 +107,16 @@ abstract class AbstractPrompt implements PromptInterface
         return !empty($this->images);
     }
 
+    public function clearContentSections(): static
+    {
+        foreach (array_keys($this->sections) as $id) {
+            if ($id !== 'context') {
+                unset($this->sections[$id]);
+            }
+        }
+        return $this;
+    }
+
     abstract protected function configure(): void;
 
     public function __construct()
@@ -113,7 +128,7 @@ abstract class AbstractPrompt implements PromptInterface
     {
         return json_encode($this->format(new ChatFormatter), JSON_PRETTY_PRINT);
     }
-    
+
     public function __call(string $name, array $arguments): static
     {
        if (substr($name, 0, 3) === 'add' && strlen($name) >= 3) {
