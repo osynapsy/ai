@@ -7,7 +7,8 @@ class Query implements ToolInterface
 {
     public function execute(array $arguments, $databaseService = null): mixed
     {
-        $sql = trim($arguments['sql'] ?? '');
+        $narguments = array_values($arguments);
+        $sql = trim($narguments[0] ?? '');
 
         if (empty($sql)) {
             return ['error' => "Parametro 'sql' mancante per il tool db.query."];
@@ -21,7 +22,7 @@ class Query implements ToolInterface
         }
 
         if (!method_exists($databaseService, 'findAssoc')) {
-            return ['error' => "Metodo executeSafeSelect non disponibile nel servizio database."];
+            return ['error' => "Metodo findAssoc non disponibile nel servizio database."];
         }
 
         try {
