@@ -1,0 +1,59 @@
+{
+  "type": "namespace",
+  "name": "db",
+  "description": "Accesso in sola lettura al database gestionale. Lo schema è già nel contesto: usa questi strumenti solo per eseguire query o se una tabella non compare nello schema.",
+  "tools": [
+    {
+      "type": "function",
+      "name": "query",
+      "description": "Esegue UNA query SELECT di sola lettura e restituisce le righe. Vietato INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE e istruzioni multiple. Scrivi l'SQL su una riga, apici singoli per i testi. Nelle tabelle con dat_del aggiungi dat_del IS NULL. Evita SELECT *; usa LIMIT per gli elenchi e SUM/COUNT/GROUP BY per i totali. Per nomi e ragioni sociali usa LIKE '%testo%'. Non ripetere mai la stessa query. Se il risultato è vuoto, ricontrolla la logica, correggi e riprova una volta: se resta vuoto, è il risultato definitivo.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sql": {
+            "type": "string",
+            "description": "Istruzione SELECT su una sola riga."
+          }
+        },
+        "required": ["sql"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "type": "function",
+      "name": "table_list",
+      "description": "Elenca tutte le tabelle del database. Usalo solo se la tabella cercata non compare nello schema già in contesto.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "type": "function",
+      "name": "table_describe",
+      "description": "Restituisce colonne e tipi di una tabella. Usalo solo se la tabella o il campo non compaiono nello schema già in contesto.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table_name": {
+            "type": "string",
+            "description": "Nome esatto della tabella, es. tbl_doc."
+          }
+        },
+        "required": ["table_name"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "type": "function",
+      "name": "describe_all",
+      "description": "Ritorna la table_description di tutte le tabelle presenti nel database corrente",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}
