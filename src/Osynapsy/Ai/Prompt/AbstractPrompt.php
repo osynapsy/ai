@@ -5,6 +5,7 @@ use Osynapsy\Ai\Prompt\Formatter\PromptFormatterInterface;
 use Osynapsy\Ai\Prompt\Formatter\ChatFormatter;
 use Osynapsy\Ai\Prompt\Section\Dataset;
 use Osynapsy\Ai\Tools\ToolContext;
+use Osynapsy\Ai\Tools\ToolCall;
 
 /**
  * Description of AbstractPrompt
@@ -17,6 +18,7 @@ abstract class AbstractPrompt implements PromptInterface
     protected array $sections = [];
     protected array $messages = [];
     protected array $images = [];
+    protected array $tools = [];
 
     public function addContext(string $context)
     {
@@ -30,7 +32,8 @@ abstract class AbstractPrompt implements PromptInterface
     public function addTools(): static
     {
         // Riutilizza il tuo metodo addContext esistente per metterlo nel ruolo 'system'
-        $this->addContext(ToolContext::get());
+        $this->addContext(ToolContext::getToolsContext());
+        $this->tools = ToolContext::getTools() ?? [];
         return $this;
     }
 
@@ -80,9 +83,43 @@ abstract class AbstractPrompt implements PromptInterface
         return $formatter->format($this);
     }
 
-    public function addMessage($role, $message)
+    public function addMessage(string $role, string $message) : static
     {
         $this->messages[] = [$role, $message];
+        return $this;
+    }
+
+    /**
+     * Aggiunge il messaggio dell'assistant che include la richiesta del tool
+     */
+    public function addAssistantToolCall(?string $content, ToolCall $toolCall): void
+    {
+        $this->messages[] = [
+            'role' => 'assistant',
+            'content' => $content ?? '',
+            'tool_calls' => [
+                [
+                    'id' => $toolCall->getId(),
+                    'type' => 'function',
+                    'function' => [
+                        'name' => $toolCall->getTool(),
+                        'arguments' => json_encode($toolCall->getArguments(), JSON_UNESCAPED_UNICODE)
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Aggiunge il risultato del tool estraendo l'ID direttamente dall'oggetto ToolCall
+     */
+    public function addToolResult(ToolCall $toolCall, mixed $result): void
+    {
+        $this->messages[] = [
+            'role' => 'tool',
+            'tool_call_id' => $toolCall->getId(),
+            'content' => is_string($result) ? $result : json_encode($result, JSON_UNESCAPED_UNICODE)
+        ];
     }
 
     public function addImage(string $filePathOrBase64): static
@@ -108,6 +145,11 @@ abstract class AbstractPrompt implements PromptInterface
     public function getSections()
     {
         return $this->sections;
+    }
+
+    public function getTools()
+    {
+        return $this->tools;
     }
 
     public function hasImages(): bool
