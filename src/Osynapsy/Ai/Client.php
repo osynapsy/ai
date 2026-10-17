@@ -39,12 +39,11 @@ class Client
     public function send(PromptInterface $prompt, $maxTokens = 1024)
     {
         $iteration = 0;
-
         while ($iteration < $this->maxToolIterations) {
             $iteration++;
 
             // 1. Costruisce ed esegue la chiamata HTTP tramite il formatter
-            $body = $this->getModel()->buildRequest($prompt, $maxTokens);
+            $body = $this->getModel()->buildRequest($prompt, $maxTokens);           
             $Request = $this->restClientRequestFactory($this->host . $this->getModel()->getEndpoint(), $body, $this->key);
             $Response = $this->restClientFactory($Request);
 
@@ -56,25 +55,18 @@ class Client
             }
             //$prompt->clearContentSections();
             // 3. L'LLM ha richiesto un tool
+            //Recupero la tool call request
             $toolCall = $chatResponse->getToolRequest();
+             // 1. Registriamo prima il messaggio dell'Assistant che ha richiesto il tool
+            // NOTA: passa il content (spesso stringa vuota) E la struttura nativa delle tool_calls
+            // 1. L'assistant richiede un tool: passiamo direttamente l'oggetto ToolCall
+            $prompt->addAssistantToolCall($chatResponse->getContent(), $toolCall);
 
-            // Svuotiamo le sezioni correnti (il turno utente iniziale) la prima volta che entriamo
-            // nel loop dei tool, così non vengono duplicate nei turni successivi del while,
-            // e le registriamo ufficialmente nella history della conversazione.
-            // (Nota: verifichiamo se la history è vuota o se dobbiamo accodare lo scambio)
-
-            $prompt->addMessage('assistant', $chatResponse->getContent());
-
-            // Eseguiamo il tool
+            // 2. Eseguiamo il tool
             $toolResult = $this->toolExecutor->execute($toolCall);
 
-
-            // Aggiungiamo il risultato del tool come messaggio nella history del prompt
-            $prompt->addMessage('user', "Risultato dell'esecuzione del tool {$toolCall->getTool()}:\n" . json_encode($toolResult, JSON_PRETTY_PRINT));
-            // NOTA BENE: Se nel frattempo le sezioni correnti del prompt contenevano la domanda dell'utente,
-            // alla prima iterazione del ciclo il ChatFormatter le ha già incluse nel primo invio.
-            // Per evitare che vengano reinserite dal ChatFormatter nelle iterazioni successive del while,
-            // possiamo ripulire le sezioni non di contesto dopo il primo invio.
+            // 3. Aggiungiamo il risultato passando l'oggetto ToolCall e il risultato
+            $prompt->addToolResult($toolCall, $toolResult);            
         }
 
         throw new \RuntimeException("Superato il limite massimo di iterazioni ({$this->maxToolIterations}) per i tool.");
