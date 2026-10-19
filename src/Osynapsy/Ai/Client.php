@@ -3,73 +3,53 @@ namespace Osynapsy\Ai;
 
 use Osynapsy\Rest\Client\JsonClient;
 use Osynapsy\Rest\Request\Request;
-use Osynapsy\Ai\Model\ModelInterface;
-use Osynapsy\Ai\Prompt\Prompt;
-use Osynapsy\Ai\Prompt\PromptInterface;
-use Osynapsy\Ai\Tools\ToolExecutor;
+use Osynapsy\Ai\Payload\PayloadInterface;
 
 class Client
 {
-    protected $version;
     protected $host;
-    protected $model;
     protected $key;
-    protected $cache = False;
-    protected ?ToolExecutor $toolExecutor = null;
-    protected int $maxToolIterations = 10;
 
-    public function __construct(string $host, string $key, ModelInterface $model)
+    public function __construct(string $host, string $key)
     {
         $this->host = $host;
         $this->key = $key;
-        $this->model = $model;
     }
 
-    public function getModel() : ModelInterface
-    {
-        return $this->model;
-    }
-
-    public function setToolExecutor(ToolExecutor $toolExecutor): self
-    {
-        $this->toolExecutor = $toolExecutor;
-        return $this;
-    }
-
-    public function send(PromptInterface $prompt, $maxTokens = 1024)
+    public function send(PayloadInterface $payload)
     {
         $iteration = 0;
-        while ($iteration < $this->maxToolIterations) {
+        $maxIterations = $payload->hasTool() ? $payload->getToolExecutor()->getMaxToolIterations() : 1;
+        while ($iteration < $maxIterations) {
             $iteration++;
-
             // 1. Costruisce ed esegue la chiamata HTTP tramite il formatter
-            $body = $this->getModel()->buildRequest($prompt, $maxTokens);           
-            $Request = $this->restClientRequestFactory($this->host . $this->getModel()->getEndpoint(), $body, $this->key);
+            $Request = $this->restClientRequestFactory($this->host . $payload->getEndpoint(), $payload->jsonSerialize(), $this->key);
+
+                // Debug immediato del JSON esatto che sta partendo verso Ollama:
+            file_put_contents(sprintf('/tmp/ollama_payload_%s.json',date('Y-m-d_H:i:s')), json_encode($payload->jsonSerialize(), JSON_PRETTY_PRINT));
+            file_put_contents('/tmp/ollama_payload.json', json_encode($payload->jsonSerialize(), JSON_PRETTY_PRINT));
             $Response = $this->restClientFactory($Request);
 
             /** @var ChatResponseInterface $chatResponse */
-            $chatResponse = $this->getModel()->getResponse($Response->getBody());
+            $chatResponse = $payload->responseFactory($Response->getBody());
+            file_put_contents(sprintf('/tmp/aichatresponse.txt'), print_r($chatResponse, true));
             // 2. Se non ci sono richieste di tool o non c'è l'executor, restituisce la risposta
-            if ($chatResponse->hasError() || !$this->toolExecutor || !$chatResponse->hasToolRequest()) {
+            if ($chatResponse->hasError() || !$payload->hasTool() || !$chatResponse->hasToolRequest()) {
+                $payload->getHistory()->addAssistant($chatResponse->getContent());
                 return $chatResponse;
             }
-            //$prompt->clearContentSections();
             // 3. L'LLM ha richiesto un tool
             //Recupero la tool call request
             $toolCall = $chatResponse->getToolRequest();
-             // 1. Registriamo prima il messaggio dell'Assistant che ha richiesto il tool
-            // NOTA: passa il content (spesso stringa vuota) E la struttura nativa delle tool_calls
-            // 1. L'assistant richiede un tool: passiamo direttamente l'oggetto ToolCall
-            $prompt->addAssistantToolCall($chatResponse->getContent(), $toolCall);
-
-            // 2. Eseguiamo il tool
-            $toolResult = $this->toolExecutor->execute($toolCall);
-
-            // 3. Aggiungiamo il risultato passando l'oggetto ToolCall e il risultato
-            $prompt->addToolResult($toolCall, $toolResult);            
+            // 3.1. L'assistant richiede un tool: passiamo direttamente l'oggetto ToolCall
+            $payload->getHistory()->addAssistant($chatResponse->getContent(), $toolCall);
+            // 3.2. Eseguiamo il tool
+            $toolResult = $payload->getToolExecutor()->execute($toolCall);
+            // 3.3. Aggiungiamo il risultato passando l'oggetto ToolCall e il risultato
+            $payload->getHistory()->addToolResult($toolCall, $toolResult);
         }
 
-        throw new \RuntimeException("Superato il limite massimo di iterazioni ({$this->maxToolIterations}) per i tool.");
+        throw new \RuntimeException("Superato il limite massimo di iterazioni ({$maxIterations()}) per i tool.");
     }
 
     protected function restClientRequestFactory($endpoint, $data, $token)
@@ -82,20 +62,5 @@ class Client
     protected function restClientFactory($Request)
     {
         return (new JsonClient(false))->execute($Request);
-    }
-
-    public function promptFactory() : PromptInterface
-    {
-        return new Prompt;
-    }
-
-    protected function setVersion(string $ver) : void
-    {
-        $this->version = $ver;
-    }
-
-    public function enableCache()
-    {
-        $this->cache = False;
     }
 }
