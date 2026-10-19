@@ -3,7 +3,7 @@ namespace Osynapsy\Ai\Response;
 
 use Osynapsy\Ai\Tools\ToolCall;
 
-class ChatResponse implements ChatResponseInterface
+class ChatResponse implements \Osynapsy\Ai\Response\ResponseInterface
 {
     protected array $raw;
     protected ?array $error;
@@ -70,52 +70,81 @@ class ChatResponse implements ChatResponseInterface
         if (isset($this->raw['output_text'])) {
             return (string) $this->raw['output_text'];
         }
-        
+
         // Responses API
         if (isset($this->raw['output_text'])) {
             $this->raw['output_text'];
         }
-
+        file_put_contents('/tmp/aichat.json', json_encode($this->raw, JSON_PRETTY_PRINT));
         return '';
     }
 
     /**
-     * Verifica se il contenuto della risposta richiede l'esecuzione di un tool
-     * cercando un blocco JSON con la chiave "tool".
+     * Verifica se la risposta nativa dell'LLM contiene richieste di tool.
      */
     public function hasToolRequest(): bool
     {
-        return $this->getToolRequest() !== null;
+        // Controlla sia nel formato standard OpenAI/Ollama che in eventuali variazioni radice
+        //$toolCalls = $this->raw['message']['tool_calls'] ?? $this->raw['tool_calls'] ?? null;
+        //return !empty($toolCalls) && is_array($toolCalls);
+        $toolCalls = $this->raw['choices'][0]['message']['tool_calls']
+              ?? $this->raw['message']['tool_calls']
+              ?? $this->raw['tool_calls']
+              ?? null;
+
+        return !empty($toolCalls) && is_array($toolCalls);
     }
 
     /**
-     * Estrae e decodifica la richiesta del tool dal contenuto testuale.
-     * Restituisce un array con ['tool' => '...', 'arguments' => [...]] oppure null.
+     * Estrae la richiesta del tool dalla struttura nativa tool_calls.
      */
     public function getToolRequest(): ?ToolCall
     {
-        $content = $this->getContent();
+        $toolCalls = $this->raw['choices'][0]['message']['tool_calls']
+              ?? $this->raw['message']['tool_calls']
+              ?? $this->raw['tool_calls']
+              ?? null;
 
-        if (empty($content)) {
+        if (empty($toolCalls) || !is_array($toolCalls)) {
             return null;
         }
 
-        // Cerca un blocco di codice JSON (es. ```json ... ```) oppure un JSON grezzo
-        if (preg_match('/```(?:json)?\s*({.*?})\s*```/s', $content, $matches)) {
-            $jsonString = $matches[1];
-        } else {
-            // Tentativo di decodificare l'intero contenuto se è un JSON puro
-            $jsonString = trim($content);
+        // Prendiamo la prima chiamata tool richiesta dal modello
+        $call = $toolCalls[0] ?? null;
+        if (!$call || !isset($call['function'])) {
+            return null;
         }
 
-        $decoded = json_decode($jsonString, true);
+        $id = $call['id'] ?? null;
+        $function = $call['function'];
+        $toolName = trim($function['name'] ?? '');
+        $arguments = $function['arguments'] ?? [];
 
-        // Verifica che sia un array valido e che contenga la chiave 'tool'
-        if (is_array($decoded) && isset($decoded['tool'])) {
-            return new ToolCall($decoded['tool'], $decoded['arguments'] ?? []);
+        // Se gli argomenti sono una stringa JSON, decodifichiamoli subito
+        if (is_string($arguments)) {
+            $arguments = json_decode($arguments, true) ?? [];
         }
 
-        return null;
+        // FALLBACK DIFENSIVO: Se il modello ha lasciato 'name' vuoto ma ha inserito
+        // il nome del tool dentro l'array degli argomenti (es. $arguments['tool'])
+        if (empty($toolName) && isset($arguments['tool'])) {
+            $toolName = $arguments['tool'];
+            // Rimuoviamo la chiave 'tool' dagli argomenti se non serve,
+            // oppure teniamo la sotto-chiave 'arguments' se presente
+            $arguments = $arguments['arguments'] ?? $arguments;
+            // Se 'arguments' era un sotto-array, puliamo l'eventuale chiave 'tool' residua
+            if (is_array($arguments) && isset($arguments['tool'])) {
+                unset($arguments['tool']);
+            }
+        }
+
+        if (empty($toolName)) {
+            return null;
+        }
+
+        // Istanziamo il ToolCall
+        $toolCall = new ToolCall($id, $toolName, is_string($arguments) ? json_decode($arguments, true) : $arguments);
+        return $toolCall;
     }
 
     public function getRaw(): array

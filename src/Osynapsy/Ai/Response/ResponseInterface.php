@@ -1,7 +1,7 @@
 <?php
 namespace Osynapsy\Ai\Response;
 
-interface ChatResponseInterface
+interface ResponseInterface
 {
     public function hasError(): bool;
 
