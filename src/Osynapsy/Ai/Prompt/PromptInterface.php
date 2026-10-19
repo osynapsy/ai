@@ -1,9 +1,13 @@
 <?php
 namespace Osynapsy\Ai\Prompt;
 
-use Osynapsy\Ai\Prompt\Formatter\PromptFormatterInterface;
+use Osynapsy\Ai\Prompt\PromptSection;
 
 interface PromptInterface
-{    
-    public function format(?PromptFormatterInterface $formatter = null) : mixed;
+{
+    public function addSection(PromptSection $section) : static;
+
+    public function getText() : string;
+
+    public function getImages() : array;
 }

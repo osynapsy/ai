@@ -10,11 +10,6 @@ class File implements PromptInterface
     {
         $this->file = new \CURLFile($filename);
     }
-
-    public function format(?Formatter\PromptFormatterInterface $formatter = null) : mixed
-    {
-        return ['file' => $this->file];
-    }
     
     public function convertAudioToWav($rawfileName)
     {
