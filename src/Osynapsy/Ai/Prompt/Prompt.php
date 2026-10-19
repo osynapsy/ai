@@ -63,7 +63,7 @@ class Prompt implements PromptInterface
 
     public function getText() : string
     {
-        return implode("\n", $this->section);
+        return implode("\n", $this->sections);
     }
 
     public function __toString(): string
