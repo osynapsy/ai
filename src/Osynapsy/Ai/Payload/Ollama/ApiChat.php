@@ -47,34 +47,48 @@ class ApiChat extends AbstractPayload
         return $formattedTools;
     }
 
+    public function jsonSerialize(): mixed
+    {
+        $data = parent::jsonSerialize();
+        if (isset($this->options['num_ctx'])) {
+            return $data;
+        }
+        $maxToken = $this->calculateDynamicContext($data, 2);
+        if (!isset($data['options'])) {
+            $data['options'] = [];
+        }
+        $data['options']['num_ctx'] = $maxToken;
+        return $data;
+    }
+
     public function setFormat(?string $format): self
     {
-        return $this->setParameter('format', $format);        
+        return $this->setParameter('format', $format);
     }
 
     public function setTemperature(float $temperature): self
     {
-        return $this->setOption('temperature', $temperature);        
+        return $this->setOption('temperature', $temperature);
     }
 
     public function setMaxContext(?int $maxContext): self
     {
-        return $this->setOption('num_ctx', $maxContext);        
+        return $this->setOption('num_ctx', $maxContext);
     }
 
     public function setMaxTokens(?int $maxTokens): self
     {
-        return $this->setOption('num_predict', $maxTokens);        
+        return $this->setOption('num_predict', $maxTokens);
     }
 
     public function setKeepAlive($value)
     {
-        return $this->setParameter('keep_alive', $value);        
+        return $this->setParameter('keep_alive', $value);
     }
 
     public function setRepeatPenality(float $val)
     {
-        return $this->setOption('repeat_penality', $val);        
+        return $this->setOption('repeat_penality', $val);
     }
 
     public function responseFactory(array $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
