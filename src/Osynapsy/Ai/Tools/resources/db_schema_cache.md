@@ -13,9 +13,6 @@ tbl_doc_row = tabella contenente le righe dei documenti.
 - `ana_slv` = ide del CLIENTE / CONTROPARTE (il cliente a cui è intestata la fattura). USA SEMPRE QUESTO per filtrare il cliente (es. JOIN con tbl_ana su ana_slv = tbl_ana.id).
 - I campi che finiscono per `_dsc` (come `ana_cmp_dsc` o `ana_slv_dsc`) SONO VIETATI E NON DEVONO MAI ESSERE USATI NELLE QUERY.
 
-## QUERY utili
-SELECT id FROM tbl_ana WHERE id_typ = 'company' => IDs delle ditte che usano l'Erp
-
 ## RELAZIONI
 tbl_doc.id_typ -> tbl_doc_typ.id
 tbl_doc.ana_cmp -> tbl_ana.id (ditta emittente documento)

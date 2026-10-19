@@ -1,12 +1,11 @@
 {
-  "type": "namespace",
-  "name": "db",
+  "namespace": "db",
   "description": "Accesso in sola lettura al database gestionale. Lo schema è già nel contesto: usa questi strumenti solo per eseguire query o se una tabella non compare nello schema.",
   "tools": [
     {
-      "type": "function",
-      "name": "query",
+      "name": "db.query",
       "description": "Esegue UNA query SELECT di sola lettura e restituisce le righe. Vietato INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE e istruzioni multiple. Scrivi l'SQL su una riga, apici singoli per i testi. Nelle tabelle con dat_del aggiungi dat_del IS NULL. Evita SELECT *; usa LIMIT per gli elenchi e SUM/COUNT/GROUP BY per i totali. Per nomi e ragioni sociali usa LIKE '%testo%'. Non ripetere mai la stessa query. Se il risultato è vuoto, ricontrolla la logica, correggi e riprova una volta: se resta vuoto, è il risultato definitivo.",
+      "class": "Osynapsy\\Ai\\Tools\\Db\\Query",
       "parameters": {
         "type": "object",
         "properties": {
@@ -20,9 +19,9 @@
       }
     },
     {
-      "type": "function",
-      "name": "table_list",
+      "name": "db.table_list",
       "description": "Elenca tutte le tabelle del database. Usalo solo se la tabella cercata non compare nello schema già in contesto.",
+      "class": "Osynapsy\\Ai\\Tools\\Db\\TableList",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -30,9 +29,9 @@
       }
     },
     {
-      "type": "function",
-      "name": "table_describe",
+      "name": "db.table_describe",
       "description": "Restituisce colonne e tipi di una tabella. Usalo solo se la tabella o il campo non compaiono nello schema già in contesto.",
+      "class": "Osynapsy\\Ai\\Tools\\Db\\TableDescribe",
       "parameters": {
         "type": "object",
         "properties": {
@@ -46,9 +45,9 @@
       }
     },
     {
-      "type": "function",
-      "name": "describe_all",
+      "name": "db.describe_all",
       "description": "Ritorna la table_description di tutte le tabelle presenti nel database corrente",
+      "class": "Osynapsy\\Ai\\Tools\\Db\\DescribeAll",
       "parameters": {
         "type": "object",
         "properties": {},

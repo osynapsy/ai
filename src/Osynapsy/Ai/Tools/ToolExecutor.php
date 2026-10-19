@@ -1,52 +1,119 @@
 <?php
 namespace Osynapsy\Ai\Tools;
 
-use Osynapsy\Ai\Tools\ToolCall;
-
-/**
- * Description of ToolExecutor
- *
- * @author Pietro Celeste <p.celeste@osynapsy.net>
- */
 class ToolExecutor
 {
-    protected string $baseNamespace = 'Osynapsy\\Ai\\Tools\\';
+    protected array $definitions = [];
+    protected array $handlers = [];
+    protected $dbo;
 
-    public function __construct(protected $databaseService) {}
-
-    public function execute(ToolCall $toolCall): mixed
+    public function __construct($dbo, $dir = __DIR__)
     {
-        $toolName = $toolCall->getTool(); // es. "db.table_list"
-        $arguments = $toolCall->getArguments();
-
-        $className = $this->resolveClassName($toolName);
-
-        if (!class_exists($className) || !is_subclass_of($className, ToolInterface::class)) {
-            return ['error' => "Tool sconosciuto o non valido: {$toolName}"];
-        }
-
-        /** @var ToolInterface $tool */
-        $tool = new $className();
-
-        return $tool->execute($arguments, $this->databaseService);
+        $this->dbo = $dbo;
+        $this->discover($dir);
     }
 
     /**
-     * Converte "db.table_list" in "Osynapsy\Ai\Tools\Db\TableList"
+     * Scansiona automaticamente una directory base (es. Osynapsy/Ai/Tools)
+     * alla ricerca di cataloghi JSON in ogni sottocartella.
      */
-    protected function resolveClassName(string $toolName): string
+    public function discover(string $toolsBaseDir): self
     {
-        $parts = explode('.', $toolName);
-
-        if (count($parts) !== 2) {
-            return '';
+        if (!is_dir($toolsBaseDir)) {
+            return $this;
         }
 
-        $category = ucfirst(strtolower($parts[0])); // db -> Db
+        // Cerca tutte le sottocartelle (es. Db, File, ecc.)
+        $subDirs = glob($toolsBaseDir . '/*', GLOB_ONLYDIR);
 
-        // table_list -> TableList
-        $action = str_replace(' ', '', ucwords(str_replace('_', ' ', $parts[1])));
+        foreach ($subDirs as $dir) {
+            // Cerca file JSON all'interno della sottocartella (es. db.json, file.json)
+            $jsonFiles = glob($dir . '/*.json');
+            foreach ($jsonFiles as $jsonFile) {
+                $this->loadCatalog($jsonFile);
+            }
+        }
 
-        return "{$this->baseNamespace}{$category}\\{$action}";
+        return $this;
+    }
+
+    /**
+     * Carica un singolo file JSON di catalogo e registra tool e handler.
+     */
+    public function loadCatalog(string $jsonFilePath): void
+    {
+        $content = file_get_contents($jsonFilePath);
+        $catalog = json_decode($content, true);
+
+        if (!$catalog || !isset($catalog['tools']) || !is_array($catalog['tools'])) {
+            return;
+        }
+
+        foreach ($catalog['tools'] as $tool) {
+            $name = $tool['name'] ?? null;
+            $className = $tool['class'] ?? null;
+
+            if (!$name || !$className) {
+                continue;
+            }
+
+            // 1. Registra la definizione pulita pronta per essere passata nel Payload dell'LLM
+            $this->definitions[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $name,
+                    'description' => $tool['description'] ?? '',
+                    'parameters' => $tool['parameters'] ?? []
+                ]
+            ];
+
+            // 2. Mappa il nome del tool alla classe PHP che lo esegue
+            $this->handlers[$name] = $className;
+        }
+    }
+
+    /**
+     * Restituisce l'array dei tool formattato per il Payload del Client.
+     */
+    public function getDefinitions(): array
+    {
+        return $this->definitions;
+    }
+
+    public function getToolsContext()
+    {
+        return ToolContext::getToolsContext();
+    }
+
+    public function getMaxToolIterations()
+    {
+        return 10;
+    }
+
+    /**
+     * Esegue la classe associata al ToolCall ricevuto dall'LLM.
+     */
+    public function execute(ToolCall $toolCall): mixed
+    {
+        $name = str_replace('_', '.', $toolCall->getTool());
+
+        if (!isset($this->handlers[$name])) {
+            throw new \Exception("Tool non registrato: {$name}");
+        }
+
+        $className = $this->handlers[$name];
+
+        if (!class_exists($className)) {
+            throw new \Exception("Classe handler non trovata per il tool {$name}: {$className}");
+        }
+
+        $handler = new $className();
+
+        if (!method_exists($handler, 'execute')) {
+            throw new \Exception("La classe handler {$className} deve implementare un metodo handle().");
+        }
+
+        // Esegue il tool passando gli argomenti decodificati dall'LLM
+        return $handler->execute($toolCall->getArguments(), $this->dbo);
     }
 }
