@@ -16,6 +16,7 @@ class ApiChat extends AbstractPayload
     {
         parent::__construct($model, $history);
         $this->setParameter('stream', false);
+        $this->setThink(false);
     }
 
     public function getEndpoint() : string
@@ -60,14 +61,14 @@ class ApiChat extends AbstractPayload
         $data['options']['num_ctx'] = $maxToken;
         return $data;
     }
-    
-    public function messageHistorySerialize($rawmessages): mixed 
-    {        
+
+    public function messageHistorySerialize($rawmessages): mixed
+    {
         $messages = [];
         foreach($rawmessages as $rawmessage) {
             $message = $rawmessage;
             if ($message['role'] === 'assistent' && !empty($message['tool_calls']) && is_object($message['tool_calls'])) {
-                $toolCall = $message['tool_calls'];                
+                $toolCall = $message['tool_calls'];
                 $message['tool_calls'] =  [[
                     'id' => $toolCall->getId(),
                     'type' => 'function',
@@ -78,7 +79,7 @@ class ApiChat extends AbstractPayload
                 ]];
             }
             $messages[] = $message;
-        }        
+        }
         return $messages;
     }
 
@@ -110,6 +111,11 @@ class ApiChat extends AbstractPayload
     public function setRepeatPenality(float $val)
     {
         return $this->setOption('repeat_penality', $val);
+    }
+
+    public function setThink(bool $value)
+    {
+        $this->setParameter('think', $value);
     }
 
     public function responseFactory(array $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
