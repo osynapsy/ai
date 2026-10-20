@@ -60,6 +60,27 @@ class ApiChat extends AbstractPayload
         $data['options']['num_ctx'] = $maxToken;
         return $data;
     }
+    
+    public function messageHistorySerialize($rawmessages): mixed 
+    {        
+        $messages = [];
+        foreach($rawmessages as $rawmessage) {
+            $message = $rawmessage;
+            if ($message['role'] === 'assistent' && !empty($message['tool_calls']) && is_object($message['tool_calls'])) {
+                $toolCall = $message['tool_calls'];                
+                $message['tool_calls'] =  [[
+                    'id' => $toolCall->getId(),
+                    'type' => 'function',
+                    'function' => [
+                        'name' => $toolCall->getTool(),
+                        'arguments' => $toolCall->getArguments()
+                    ]
+                ]];
+            }
+            $messages[] = $message;
+        }        
+        return $messages;
+    }
 
     public function setFormat(?string $format): self
     {

@@ -104,10 +104,15 @@ abstract class AbstractPayload implements \JsonSerializable, PayloadInterface
         if (!empty($this->options)) {
             $data['options'] = $this->optionsAdapter($this->options);
         }
-        $data['messages'] = $this->history->all();
+        $data['messages'] = $this->messageHistorySerialize($this->history->all());
         return $data;
     }
 
+    protected function messageHistorySerialize($messages)
+    {
+        return $messages;
+    }
+    
     protected function toolsAdapter(array $tools)
     {
         return $tools;

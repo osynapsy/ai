@@ -52,25 +52,9 @@ class MessageCollection implements MessageCollectionInterface
             'role' => 'assistant',
             'content' => $content
         ];
-
         if ($toolCall) {
-            //per ollama 'arguments' => $arguments
-            $arguments = $toolCall->getArguments();
-            $msg['tool_calls'] =  [[
-                'id' => $toolCall->getId(),
-                'type' => 'function',
-                'function' => [
-                    'name' => $toolCall->getTool(),
-                    'arguments' => is_string($arguments)
-                    ? $arguments
-                    : json_encode(
-                        $arguments,
-                        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
-                    )
-                ]
-            ]];
+            $msg['tool_calls'] = $toolCall;
         }
-
         $this->messages[] = $msg;
         return $this;
     }

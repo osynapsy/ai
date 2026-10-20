@@ -34,6 +34,33 @@ class v1ChatCompletion extends AbstractPayload
         }
         return $formattedTools;
     }
+    
+    public function messageHistorySerialize($rawmessages): mixed 
+    {        
+        $messages = [];
+        foreach($rawmessages as $rawmessage) {
+            $message = $rawmessage;
+            if ($message['role'] === 'assistant' && !empty($message['tool_calls']) && is_object($message['tool_calls'])) {
+                $toolCall = $message['tool_calls'];                
+                $arguments = $toolCall->getArguments();
+                $message['tool_calls'] =  [[
+                    'id' => $toolCall->getId(),
+                    'type' => 'function',
+                    'function' => [
+                        'name' => $toolCall->getTool(),
+                        'arguments' => is_string($arguments)
+                        ? $arguments
+                        : json_encode(
+                            $arguments,
+                            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+                        )
+                    ]
+                ]];
+            }
+            $messages[] = $message;
+        }        
+        return $messages;
+    }
 
     public function responseFactory(array $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
     {
