@@ -13,11 +13,11 @@ class apiV1ChatCompletion extends v1ChatCompletion
     public function __construct(string $model, \Osynapsy\Ai\Message\MessageCollection $history)
     {
         parent::__construct($model, $history);
-        $this->setReasoning(false);
+        $this->setThink(false);
         $this->setParameter('stream', false);
     }
 
-    public function getEndpoint()
+    public function getEndpoint() : string
     {
         return '/api/v1/chat/completions';
     }
