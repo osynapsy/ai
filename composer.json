@@ -1,10 +1,10 @@
 {
     "name": "osynapsy/ai",
-    "version": "0.1.0",
+    "version": "0.2",
     "homepage": "https://osynapsy.net/",
     "type": "library",
     "description": "Library for interface php with main AI provider",
-    "keywords": ["Library","AI"],
+    "keywords": ["Library","AI", "OpenAi", "Ollama", "LM Studio", "Anthropic"],
     "license": "MIT",
     "authors": [
         {

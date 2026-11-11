@@ -64,8 +64,8 @@ class ApiChat extends AbstractPayload
 
     public function messageHistorySerialize($rawmessages): mixed
     {
-        $messages = [];
-        foreach($rawmessages as $rawmessage) {
+        $cleanmessages = parent::messageHistorySerialize($rawmessages);
+        foreach($cleanmessages as $rawmessage) {
             $message = $rawmessage;
             if ($message['role'] === 'assistent' && !empty($message['tool_calls']) && is_object($message['tool_calls'])) {
                 $toolCall = $message['tool_calls'];
@@ -118,8 +118,13 @@ class ApiChat extends AbstractPayload
         $this->setParameter('think', $value);
     }
 
-    public function responseFactory(array $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
+    public function responseFactory(string $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
     {
-        return new ChatResponse($rawresponse);
+        return new ChatResponse(json_decode($rawresponse, true));
+    }
+    
+    public function isStreaming(): bool 
+    {
+        return !empty($this->getParameter('stream'));
     }
 }

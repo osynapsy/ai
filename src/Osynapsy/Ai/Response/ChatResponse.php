@@ -75,8 +75,19 @@ class ChatResponse implements \Osynapsy\Ai\Response\ResponseInterface
         if (isset($this->raw['output_text'])) {
             $this->raw['output_text'];
         }
-        file_put_contents('/tmp/aichat.json', json_encode($this->raw, JSON_PRETTY_PRINT));
         return '';
+    }
+
+    public function getReasoning()
+    {
+        if (isset($this->raw['choices'][0]['message']['reasoning'])) {
+            $reasoning = $this->raw['choices'][0]['message']['reasoning'];
+
+            if (is_string($reasoning)) {
+                return $reasoning;
+            }
+        }
+        return null;
     }
 
     /**

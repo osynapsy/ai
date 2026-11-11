@@ -41,7 +41,8 @@ class ClientTest extends TestCase
     public function testSendExecutesRequestAndReturnsParsedResponse(): void
     {
         $apiKey = 'test_api_key_123';
-        $endpoint = 'https://api.openai.com/v1/chat/completions';
+        $host = 'https://api.openai.com';
+        $endpoint = '/v1/chat/completions';
         $requestPayload = ['model' => 'gpt-4', 'messages' => []];
         $rawResponseBody = ['choices' => [['message' => ['content' => 'Hello World']]]];
         $expectedResult = new ChatResponse(['content' => 'Hello World']);
@@ -73,7 +74,7 @@ class ClientTest extends TestCase
 
         // 2. Mock parziale di Client per intercettare restClientFactory ed evitare chiamate di rete reali
         $client = $this->getMockBuilder(Client::class)
-            ->setConstructorArgs([$apiKey, $this->modelMock])
+            ->setConstructorArgs([$host, $apiKey, $this->modelMock])
             ->onlyMethods(['restClientFactory'])
             ->getMock();
 

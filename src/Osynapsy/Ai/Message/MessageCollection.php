@@ -46,11 +46,12 @@ class MessageCollection implements MessageCollectionInterface
         return $this;
     }
 
-    public function addAssistant(?string $content, ?ToolCall $toolCall = null): self
+    public function addAssistant(?string $content, ?string $reasoning, ?ToolCall $toolCall = null): self
     {
         $msg = [
             'role' => 'assistant',
-            'content' => $content
+            'content' => $content,
+            'reasoning' => $reasoning
         ];
         if ($toolCall) {
             $msg['tool_calls'] = $toolCall;
@@ -65,11 +66,11 @@ class MessageCollection implements MessageCollectionInterface
             'role' => 'tool',
             'name' => $toolCall->getTool(),
             'content' => is_string($result) ? $result : json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            'tool_call_id' => $toolCall->getId()            
+            'tool_call_id' => $toolCall->getId()
         ];
         return $this;
     }
-    
+
     public function all(): array
     {
         $result = [];

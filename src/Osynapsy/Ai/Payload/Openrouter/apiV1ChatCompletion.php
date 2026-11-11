@@ -26,4 +26,9 @@ class apiV1ChatCompletion extends v1ChatCompletion
     {
         $this->setParameter('reasoning', (object) ['enabled' => $v]);
     }
+    
+    public function isStreaming(): bool 
+    {
+        return !empty($this->getParameter('stream'));
+    }
 }

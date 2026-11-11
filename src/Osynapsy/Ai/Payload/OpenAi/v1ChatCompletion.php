@@ -6,6 +6,14 @@ use Osynapsy\Ai\Response\ChatResponse;
 
 class v1ChatCompletion extends AbstractPayload
 {
+    private $decoder = null;
+
+    public function __construct(string $model, \Osynapsy\Ai\Message\MessageCollection $history)
+    {
+        parent::__construct($model, $history);
+        $this->decoder = new ResponseStreamDecoder;
+    }
+
     public function getEndpoint() : string
     {
         return '/v1/chat/completions';
@@ -34,14 +42,15 @@ class v1ChatCompletion extends AbstractPayload
         }
         return $formattedTools;
     }
-    
-    public function messageHistorySerialize($rawmessages): mixed 
-    {        
+
+    public function messageHistorySerialize($rawmessages): mixed
+    {
+        $cleanmessages = parent::messageHistorySerialize($rawmessages);
         $messages = [];
-        foreach($rawmessages as $rawmessage) {
+        foreach($cleanmessages as $rawmessage) {
             $message = $rawmessage;
             if ($message['role'] === 'assistant' && !empty($message['tool_calls']) && is_object($message['tool_calls'])) {
-                $toolCall = $message['tool_calls'];                
+                $toolCall = $message['tool_calls'];
                 $arguments = $toolCall->getArguments();
                 $message['tool_calls'] =  [[
                     'id' => $toolCall->getId(),
@@ -58,17 +67,55 @@ class v1ChatCompletion extends AbstractPayload
                 ]];
             }
             $messages[] = $message;
-        }        
+        }
         return $messages;
     }
 
-    public function responseFactory(array $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
+    public function responseFactory(string $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
     {
-        return new ChatResponse($rawresponse);
+        $response = !$this->isStreaming() ? json_decode($rawresponse, true) : $this->decoder->merge($this->decoder->decodeBody($rawresponse));
+        return new ChatResponse($response);
+    }
+
+    public function extractChunk($rawLine)
+    {
+        $row = $this->decoder->decodeLine($rawLine);   // ResponseStreamDecoder: NDJSON o SSE
+        if ($row === null) {
+            return null;
+        }
+        // OpenAI-compatibile (delta) oppure Ollama nativo (message)
+        $part = $row['choices'][0]['delta'] ?? $row['message'] ?? [];
+
+        if (($part['content'] ?? '') !== '') {
+            return ['type' => 'content', 'text' => $part['content']];
+        }
+        $reasoning = $part['reasoning'] ?? $part['thinking'] ?? '';
+        if ($reasoning !== '') {
+            return ['type' => 'reasoning', 'text' => $reasoning];
+        }
+        return null;
     }
 
     public function setTemperature($value)
     {
-        return $this->setParameter('temperature', $value);
+        $this->setParameter('temperature', $value);
+        return $this;
+    }
+
+    public function setStream($value)
+    {
+        $this->setParameter('stream', $value);
+        return $this;
+    }
+
+    public function setThink(string $effort)
+    {
+        $this->setParameter('reasoning_effort', $effort);
+        return $this;
+    }
+
+    public function isStreaming(): bool
+    {
+        return !empty($this->getParameter('stream'));
     }
 }

@@ -110,9 +110,17 @@ abstract class AbstractPayload implements \JsonSerializable, PayloadInterface
 
     protected function messageHistorySerialize($messages)
     {
-        return $messages;
+        return array_map(
+            function($msg) {
+                if (array_key_exists('__id__', $msg)) {
+                    unset($msg['__id__']);
+                }
+                return $msg;
+            },
+            $messages
+        );
     }
-    
+
     protected function toolsAdapter(array $tools)
     {
         return $tools;

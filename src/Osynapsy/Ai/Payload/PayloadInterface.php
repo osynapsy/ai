@@ -22,7 +22,9 @@ interface PayloadInterface
 
     public function setToolExecutor(ToolExecutor $toolExecutor) : self;
 
-    public function responseFactory(array $rawresponse) : ResponseInterface;
+    public function responseFactory(string $rawresponse) : ResponseInterface;
 
     public function jsonSerialize(): mixed;
+
+    public function isStreaming() : bool;
 }
