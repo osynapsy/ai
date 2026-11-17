@@ -105,6 +105,20 @@ class MessageCollection implements MessageCollectionInterface
         $this->onMessageSave = $fnc;
     }
 
+    public function loadSystem(string $filePath, $placeholders = [])
+    {
+        if (empty($filePath) || !file_exists($filePath)) {
+            return;
+        }
+        $rawprompt = file_get_contents($filePath);
+        $prompt = empty($placeholders) ? $rawprompt : str_replace(
+            array_keys($placeholders),
+            array_values($placeholders),
+            $rawprompt
+        );
+        return $this->addSystem($prompt);
+    }
+
     public function __toString(): string
     {
         return json_encode($this->messages, JSON_PRETTY_PRINT);

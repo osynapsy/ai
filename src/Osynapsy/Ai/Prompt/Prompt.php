@@ -83,4 +83,18 @@ class Prompt implements PromptInterface
        }
        throw new \BadMethodCallException("No methos {$name}() exists in " . static::class);
     }
+
+    public function loadFromFile($sectionId, $filePath, $placeholders = [])
+    {
+        if (empty($filePath) || !file_exists($filePath)) {
+            return;
+        }
+        $rawprompt = file_get_contents($filePath);
+        $prompt = empty($placeholders) ? $rawprompt : str_replace(
+            array_keys($placeholders),
+            array_values($placeholders),
+            $rawprompt
+        );
+        $this->addSection(new PromptSection($sectionId, $prompt));
+    }
 }
