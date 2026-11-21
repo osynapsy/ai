@@ -2,10 +2,11 @@
 namespace Osynapsy\Ai\Tools\Db;
 
 use Osynapsy\Ai\Tools\ToolInterface;
+use Osynapsy\Database\DboInterface;
 
 class Query implements ToolInterface
 {
-    public function execute(array $arguments, $databaseService = null): mixed
+    public function execute(array $arguments, ?DboInterface $databaseService = null): mixed
     {
         $narguments = array_values($arguments);
         $sql = trim($narguments[0] ?? '');

@@ -1,6 +1,8 @@
 <?php
 namespace Osynapsy\Ai\Tools\Db;
 
+use Osynapsy\Database\DboInterface;
+
 /**
  * Description of Select
  *
@@ -8,7 +10,7 @@ namespace Osynapsy\Ai\Tools\Db;
  */
 class Select extends Query
 {
-    public function execute(array $arguments, $databaseService = null): mixed
+    public function execute(array $arguments, ?DboInterface $databaseService = null): mixed
     {
         // Se l'LLM ha passato argomenti strutturati (es. table e columns/fields)
         if (isset($arguments['table'])) {

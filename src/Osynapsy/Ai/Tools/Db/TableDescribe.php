@@ -2,6 +2,7 @@
 namespace Osynapsy\Ai\Tools\Db;
 
 use Osynapsy\Ai\Tools\ToolInterface;
+use Osynapsy\Database\DboInterface;
 
 /**
  * Description of TableDescribe
@@ -10,7 +11,7 @@ use Osynapsy\Ai\Tools\ToolInterface;
  */
 class TableDescribe implements ToolInterface
 {
-    public function execute(array $arguments, $databaseService = null): mixed
+    public function execute(array $arguments, ?DboInterface $databaseService = null): mixed
     {
         if (!method_exists($databaseService, 'getType')) {
             return ['error' => "Il meotodo getType non disponibile sul db service impossibile procedere."];
