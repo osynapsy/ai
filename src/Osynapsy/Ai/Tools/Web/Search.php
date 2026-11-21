@@ -7,7 +7,7 @@ class Search implements ToolInterface
 {
     private const MAX_RESULTS = 5;
 
-    public function execute(array $arguments, $dbs = null): mixed
+    public function execute(array $arguments): mixed
     {
         $searchTerm = trim($arguments['query'] ?? '');
 

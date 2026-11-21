@@ -5,7 +5,7 @@ use Osynapsy\Ai\Tools\ToolInterface;
 
 class Fetch implements ToolInterface
 {
-    public function execute(array $arguments, $dbs = null): mixed
+    public function execute(array $arguments): mixed
     {
         $url = trim($arguments['url'] ?? '');
 
