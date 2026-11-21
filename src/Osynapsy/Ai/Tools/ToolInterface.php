@@ -9,5 +9,5 @@ namespace Osynapsy\Ai\Tools;
 
 interface ToolInterface
 {
-    public function execute(array $arguments, $databaseService = null): mixed;
+    public function execute(array $arguments): mixed;
 }
