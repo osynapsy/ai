@@ -1,0 +1,121 @@
+{
+  "namespace": "ui",
+  "description": "Strumenti per interagire con l'interfaccia utente del gestionale Osynapsy (conferme, notifiche, pannello laterale, navigazione e compilazione campi).",
+  "tools": [
+    {
+      "name": "ui.confirm",
+      "description": "Mostra un riquadro di conferma interattivo all'utente prima di eseguire operazioni critiche o irreversibili (es. invio email, creazione record, cancellazioni).",
+      "class": "Osynapsy\\Ai\\Tools\\Ui\\Confirm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Titolo breve della card di conferma."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Descrizione chiara dell'azione che verrà eseguita."
+          },
+          "action": {
+            "type": "string",
+            "description": "Nome del tool operativo da eseguire alla conferma (es. 'mail.send')."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Parametri esatti da passare al tool operativo alla conferma."
+          },
+          "confirm_label": {
+            "type": "string",
+            "description": "Etichetta del pulsante di conferma (es. 'Conferma', 'Invia', 'Procedi')."
+          }
+        },
+        "required": ["title", "summary", "action", "payload"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ui.notify",
+      "description": "Mostra una notifica visiva (toast/alert) all'utente nell'interfaccia.",
+      "class": "Osynapsy\\Ai\\Tools\\Ui\\Notify",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Testo della notifica da mostrare."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["info", "success", "warning", "danger"],
+            "description": "Livello visivo della notifica (default: info)."
+          }
+        },
+        "required": ["message"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ui.workspace",
+      "description": "Apre, aggiorna o chiude il pannello operativo destro (split-view) accanto alla chat per mostrare tabelle, report strutturati o schede operative.",
+      "class": "Osynapsy\\Ai\\Tools\\Ui\\Workspace",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["open", "close"],
+            "description": "Usa 'open' per aprire/aggiornare il pannello destro, 'close' per chiuderlo."
+          },
+          "title": {
+            "type": "string",
+            "description": "Titolo dell'intestazione del pannello operativo."
+          },
+          "html": {
+            "type": "string",
+            "description": "Contenuto HTML pulito (es. tabella Bootstrap, card di riepilogo) da visualizzare nel pannello."
+          }
+        },
+        "required": ["mode"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ui.redirect",
+      "description": "Apre una specifica pagina o scheda del gestionale (nella scheda corrente o in una nuova scheda del browser).",
+      "class": "Osynapsy\\Ai\\Tools\\Ui\\Redirect",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL relativo o assoluto della maschera da aprire (es. '/erp/anagrafica/edit/123')."
+          },
+          "target": {
+            "type": "string",
+            "enum": ["_self", "_blank"],
+            "description": "Usa '_blank' per aprire in una nuova scheda senza chiudere la chat, '_self' per navigare nella scheda corrente."
+          }
+        },
+        "required": ["url"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ui.fill_form",
+      "description": "Compila automaticamente uno o più campi di un form aperto nella pagina corrente associando ID del campo e valore.",
+      "class": "Osynapsy\\Ai\\Tools\\Ui\\FillForm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "object",
+            "description": "Mappa chiave-valore dove la chiave è l'ID HTML del campo (senza #) e il valore è il dato da inserire."
+          }
+        },
+        "required": ["fields"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

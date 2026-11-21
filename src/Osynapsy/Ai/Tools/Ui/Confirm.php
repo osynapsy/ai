@@ -22,11 +22,11 @@ class Confirm implements ToolInterface
 
         // Chiama il metodo reale già presente nella tua ChatUI
         if ($controller !== null) {
-            $controller->remoteCall('myAiChat.renderUiCommand', $cardData);
+            $controller->remoteCall('myAiChat.renderConfirm', $cardData);
         }
 
         return [
-          'output' => "FATTO: Il pulsante di conferma è già visibile sullo schermo dell'utente. Non richiamare più ui.confirm. Scrivi ora all'utente una breve frase in italiano invitandolo a cliccare su Conferma."
+            'output' => "Conferma mostrata. Rispondi all'utente solo con: 'Verifica i dati nel riquadro e clicca su Conferma per procedere.'"
         ];
     }
 }
