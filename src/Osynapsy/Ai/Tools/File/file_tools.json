@@ -1,0 +1,62 @@
+{
+  "namespace": "file",
+  "description": "Strumenti per la lettura e la scrittura di file sul filesystem locale.",
+  "tools": [
+        {
+          "name": "file.read",
+          "description": "Legge e restituisce il contenuto testuale di un file locale a partire dal suo percorso. Usalo quando devi ispezionare documenti, configurazioni, log o file di testo presenti sul server.",
+          "class": "Osynapsy\\Ai\\Tools\\File\\Read",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Il percorso relativo o assoluto del file da leggere (es. 'docs/note.txt' o '/tmp/output.json')."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "file.write",
+          "description": "Scrive o sovrascrive un file sul filesystem locale con il contenuto specificato. Se il file non esiste viene creato. Usalo per salvare report, esportazioni o appunti su disco.",
+          "class": "Osynapsy\\Ai\\Tools\\File\\Write",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Il percorso relativo o assoluto del file in cui scrivere."
+              },
+              "content": {
+                "type": "string",
+                "description": "Il contenuto testuale da salvare all'interno del file."
+              },
+              "append": {
+                "type": "boolean",
+                "description": "Se impostato a true, aggiunge il contenuto in coda al file esistente anziché sovrascriverlo (default: false)."
+              }
+            },
+            "required": ["path", "content"],
+            "additionalProperties": false
+          }
+        },
+        {
+            "name": "file.list",
+            "description": "Elenca i file e le sottocartelle presenti in una directory locale consentita. Usalo quando non conosci il nome esatto del file da leggere o vuoi esplorare il contenuto di una cartella.",
+            "class": "Osynapsy\\Ai\\Tools\\File\\DirList",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Il percorso relativo della directory da esplorare (es. '' o '.' per la cartella principale, 'report/2026' per una sottocartella)."
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+        }
+    ]
+}
