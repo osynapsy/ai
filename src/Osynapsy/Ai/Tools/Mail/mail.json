@@ -1,0 +1,62 @@
+{
+  "namespace": "mail",
+  "description": "Strumenti per la composizione e l'invio di email dal gestionale.",
+  "tools": [
+    {
+      "name": "mail.draft",
+      "description": "Prepara una bozza email validando destinatario, oggetto e corpo, e mostra automaticamente il riquadro di conferma all'utente. Usalo SEMPRE prima di inviare qualsiasi email.",
+      "class": "Osynapsy\\Ai\\Tools\\Mail\\Draft",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Indirizzo email del destinatario principale."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Oggetto dell'email."
+          },
+          "body": {
+            "type": "string",
+            "description": "Testo del messaggio email (può contenere a capo)."
+          },
+          "cc": {
+            "type": "string",
+            "description": "Eventuale indirizzo email in copia conoscenza (opzionale)."
+          }
+        },
+        "required": ["to", "subject", "body"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "mail.send",
+      "description": "Invia effettivamente l'email. Da chiamare ESCLUSIVAMENTE dopo che l'utente ha cliccato su Conferma nella card di riepilogo.",
+      "class": "Osynapsy\\Ai\\Tools\\Mail\\Send",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Indirizzo email del destinatario principale."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Oggetto dell'email."
+          },
+          "body": {
+            "type": "string",
+            "description": "Testo completo dell'email da inviare."
+          },
+          "cc": {
+            "type": "string",
+            "description": "Eventuale indirizzo email in copia conoscenza (opzionale)."
+          }
+        },
+        "required": ["to", "subject", "body"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
