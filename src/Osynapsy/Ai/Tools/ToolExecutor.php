@@ -1,15 +1,16 @@
 <?php
 namespace Osynapsy\Ai\Tools;
 
+use Osynapsy\Helper\AutoWire;
+
 class ToolExecutor
 {
     protected array $definitions = [];
     protected array $handlers = [];
     protected $dbo;
 
-    public function __construct($dbo, $dir = __DIR__)
+    public function __construct($dir = __DIR__)
     {
-        $this->dbo = $dbo;
         $this->discover($dir);
     }
 
@@ -109,11 +110,48 @@ class ToolExecutor
 
         $handler = new $className();
 
-        if (!method_exists($handler, 'execute')) {
-            throw new \Exception("La classe handler {$className} deve implementare un metodo handle().");
+        // Supportiamo sia il nuovo standard handle() sia il vecchio execute()
+        $methodName = match (true) {
+            method_exists($handler, 'execute') => 'execute',
+            method_exists($handler, 'handle')  => 'handle',
+            default => throw new \Exception("La classe handler {$className} deve implementare handle() o execute().")
+        };
+
+        $reflection = new \ReflectionMethod($handler, $methodName);
+        $callArgs = [];
+
+        foreach ($reflection->getParameters() as $index => $param) {
+
+            // 1. Il primo parametro è sempre l'array degli argomenti passati dall'LLM
+            if ($index === 0) {
+                $callArgs[] = $toolCall->getArguments();
+                continue;
+            }
+
+            $type = $param->getType();
+
+            // 2. Se il parametro dichiara un type-hint di classe/interfaccia, chiediamo ad AutoWire
+            if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
+                $dependencyClass = $type->getName();
+
+                if (AutoWire::hasHandle($dependencyClass)) {
+                    $callArgs[] = AutoWire::getHandle($dependencyClass);
+                    continue;
+                }
+            }
+
+            // 4. Se non presente in AutoWire, usiamo il valore di default o null se consentito
+            if ($param->isDefaultValueAvailable()) {
+                $callArgs[] = $param->getDefaultValue();
+            } elseif ($param->allowsNull()) {
+                $callArgs[] = null;
+            } else {
+                throw new \RuntimeException(
+                    "Dipendenza '{$type?->getName()}' (\${$param->getName()}) non trovata in AutoWire per il tool '{$name}'."
+                );
+            }
         }
 
-        // Esegue il tool passando gli argomenti decodificati dall'LLM
-        return $handler->execute($toolCall->getArguments(), $this->dbo);
+        return $reflection->invokeArgs($handler, $callArgs);
     }
 }
