@@ -11,7 +11,7 @@ class Write implements ToolInterface
     public function __construct(?string $baseDir = null)
     {
         // Imposta la stessa directory sandbox di default della classe Read
-        $this->baseDir = rtrim($baseDir ?? sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+        $this->baseDir = rtrim($baseDir ??  $_SERVER['DOCUMENT_ROOT'] . '/../', DIRECTORY_SEPARATOR);
     }
 
     public function execute(array $arguments): mixed
