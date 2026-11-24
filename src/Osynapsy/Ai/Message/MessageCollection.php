@@ -37,12 +37,17 @@ class MessageCollection implements MessageCollectionInterface
         return $this;
     }
 
-   public function addUser(string $content): self
+   public function addUser(string $content, array $images = []): self
     {
-        $this->messages[] = [
+        $message = [
             'role' => 'user',
             'content' => $content
         ];
+        if (!empty($images)) {
+            // Formato standard compatibile con Ollama (/api/chat)
+            $message['images'] = $images;
+        }
+        $this->messages[] = $message;
         return $this;
     }
 
