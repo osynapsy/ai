@@ -36,9 +36,9 @@ class Prompt implements PromptInterface
         return $this->sections[$id];
     }
 
-    public function addImage(string $filePathOrBase64): static
+    public function addImage(string $filePathOrBase64, $storageDir = null): static
     {
-        $this->images[] = new PromptImage($filePathOrBase64);
+        $this->images[] = new PromptImage($filePathOrBase64, $storageDir);
         return $this;
     }
 
@@ -49,11 +49,7 @@ class Prompt implements PromptInterface
 
     public function getImages(): array
     {
-        $imagesBase64 = [];
-        foreach ($this->images as $image) {
-            $imagesBase64[] = $image->getBase64();
-        }
-        return $imagesBase64;
+        return $this->images;
     }
 
     public function getSections()

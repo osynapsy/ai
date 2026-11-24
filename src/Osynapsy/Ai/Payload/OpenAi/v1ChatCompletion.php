@@ -3,6 +3,7 @@ namespace Osynapsy\Ai\Payload\OpenAi;
 
 use Osynapsy\Ai\Payload\AbstractPayload;
 use Osynapsy\Ai\Response\ChatResponse;
+use Osynapsy\Ai\Prompt\PromptImage;
 
 class v1ChatCompletion extends AbstractPayload
 {
@@ -66,9 +67,67 @@ class v1ChatCompletion extends AbstractPayload
                     ]
                 ]];
             }
+
+            // 2. Gestione delle immagini (ora sono oggetti PromptImage)
+            if (!empty($message['images']) && is_array($message['images'])) {
+                // Sostituisci content con l'array multimodale e rimuovi la chiave 'images'
+                $contentParts = $this->imageContentFactory($message['content'] ?? '', $message['images']);
+                if (!empty($contentParts)) {
+                    $message['content'] = $contentParts;
+                }
+                unset($message['images']);
+            }
             $messages[] = $message;
         }
         return $messages;
+    }
+
+    protected function imageContentFactory($content, $images)
+    {
+        $contentParts = empty($content) ? [] : [[
+            'type' => 'text',
+            'text' => $content
+        ]];
+        // Aggiungi ciascuna immagine convertendo l'oggetto PromptImage in Data URI
+        foreach ($images as $image) {
+            $imageUrl = $this->imageUrlFactory($image);
+            if (empty($imageUrl)) {
+                continue;
+            }
+            $contentParts[] = [
+                'type' => 'image_url',
+                'image_url' => [
+                    'url' => $imageUrl,
+                    'detail' => 'high',
+                ]
+            ];
+        }
+        return $contentParts;
+    }
+
+    protected function imageUrlFactory($image)
+    {
+        // Supporto sia all'oggetto PromptImage sia a eventuali stringhe legacy
+        if ($image instanceof PromptImage) {
+            $base64Image = $image->getBase64();
+            $filePath    = $image->getFilePath();
+            $mimeType    = $image->getMimeType($filePath, $base64Image);
+        } elseif (is_string($image)) {
+            $base64Image = $image;
+            $mimeType    = PromptImage::detectBase64MimeType($base64Image);
+        } else {
+            return null;
+        }
+
+        if (empty($base64Image)) {
+            return null;
+        }
+
+        $imageUrl = str_starts_with($base64Image, 'data:')
+            ? $base64Image
+            : "data:{$mimeType};base64,{$base64Image}";
+
+        return $imageUrl;
     }
 
     public function responseFactory(string $rawresponse): \Osynapsy\Ai\Response\ResponseInterface
