@@ -40,7 +40,19 @@ class Send implements ToolInterface
         $from = request('env.instance.smtp.from') ?: request('env.instance.smtp.username');
 
         $message = new TransitionalMessage($from, $to, $subject);
-        $message->setHtmlBody(nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')));
+        $allowedTags = '<p><br><b><strong><i><em><u><ul><ol><li><table><thead><tbody><tr><th><td><h1><h2><h3><h4><blockquote><hr><span><div>';
+        if (preg_match('/<[a-z][\s\S]*>/i', $body)) {
+            // $body contiene già HTML: sanitizzi i tag per l'HTML e ricavi il testo puro per PlainBody
+            $cleanHtml = strip_tags($body, $allowedTags);
+            $plainText = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>', '</tr>', '</li>'], "\n", $cleanHtml)), ENT_QUOTES, 'UTF-8'));
+
+            $message->setHtmlBody($cleanHtml);
+            $message->setPlainBody($plainText);
+        } else {
+            // $body è testo semplice: converti gli a capo per l'HTML e passalo grezzo al PlainBody
+            $message->setHtmlBody(nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')));
+            $message->setPlainBody($body);
+        }
 
         // Eventuali allegati (es. file generati nella sandbox o export)
         foreach ((array) $attachments as $filePath) {
